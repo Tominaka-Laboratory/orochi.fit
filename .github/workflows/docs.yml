@@ -1,0 +1,59 @@
+name: Documentation
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${ steps.deployment.outputs.page_url }
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Build documentation
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          pip install pdoc numba scipy numpy
+          # Create lightweight stub for orochi.base (PEP 420 namespace: NO __init__.py in orochi/)
+          python -c "
+          import os
+          os.makedirs('/tmp/stub/orochi/base', exist_ok=True)
+          with open('/tmp/stub/orochi/base/__init__.py', 'w') as f: pass
+          with open('/tmp/stub/orochi/base/core.py', 'w') as f:
+              f.write('class OrochiBase:\n    pass\n')
+          "
+          export PYTHONPATH="src:/tmp/stub:$PYTHONPATH"
+          pdoc -d numpy --math -o public orochi.fit
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './public'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

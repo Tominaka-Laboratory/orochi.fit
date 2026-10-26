@@ -1,0 +1,29 @@
+# GitLab Pages configuration for Orochi API documentation
+# Automatically builds and deploys static HTML documentation using pdoc on push to main branch.
+
+image: python:3.11
+
+pages:
+  stage: deploy
+  before_script:
+    - python -m pip install --upgrade pip
+    - pip install pdoc -r requirements/pip.txt
+    # Create lightweight stub for orochi.base (PEP 420 namespace: NO __init__.py in orochi/)
+    - |
+      python -c "
+      import os
+      os.makedirs('/tmp/stub/orochi/base', exist_ok=True)
+      with open('/tmp/stub/orochi/base/__init__.py', 'w') as f: pass
+      with open('/tmp/stub/orochi/base/core.py', 'w') as f:
+          f.write('class OrochiBase:\n    pass\n')
+      "
+    # Merge src and /tmp/stub into PYTHONPATH under the orochi namespace
+    - export PYTHONPATH="src:/tmp/stub:$PYTHONPATH"
+  script:
+    # Generate modern static HTML with NumPy docstring parsing and MathJax math support
+    - pdoc -d numpy --math -o public orochi.fit
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"

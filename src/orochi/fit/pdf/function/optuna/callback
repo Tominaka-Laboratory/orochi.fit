@@ -1,0 +1,81 @@
+
+def _callback_save_best_params(self):
+    """
+    Creates an Optuna callback to save the best parameters to a file.
+    """
+    _kwargs = {"best_params_file": self["best_params_file"]}
+    def callback(study: optuna.study.Study, trial: optuna.trial.FrozenTrial) -> None:
+        # import orochi.utils.pickle_io as pio # Import only if needed
+        if not _kwargs["best_params_file"]:
+            return # Do nothing if file path is not set
+        best_params = self._get_best_params_from_study()
+        pio.save(best_params, _kwargs["best_params_file"])
+    return callback
+
+
+
+def _callback_early_stop(self):
+    """
+    Creates an Optuna callback for early stopping based on a target value.
+    """
+    def callback(study: optuna.study.Study, trial: optuna.trial.FrozenTrial) -> None:
+        trial_value = trial.value if len(self["directions"]) == 1 else trial.values[0]
+
+        if (
+            trial.state == optuna.trial.TrialState.COMPLETE
+            and trial_value < self["early_stop"]
+        ):
+            study.set_user_attr("early_stop", True)
+            study.stop()
+    return callback
+
+def _callback_logging(self):
+    """
+    Creates an Optuna callback for logging trial information.
+    """
+    # Define kwargs if they are used within the callback, e.g., for 'log_file'
+    _kwargs = {"log_file": self["log_file"]}
+
+    def callback(study: optuna.study.Study, trial: optuna.trial.FrozenTrial) -> None:
+        if len(self["directions"]) == 1:
+            best_value = study.best_value
+            trial_value = trial.value
+        else:
+            best_trials = study.best_trials
+            trial_value = trial.values
+            # Find the best value among multi-objective trials
+            current_best_value_for_logging = float('inf')
+            for t in best_trials:
+                if t.values[0] < current_best_value_for_logging: # Assuming first objective is primary for logging best
+                    current_best_value_for_logging = t.values[0]
+            best_value = current_best_value_for_logging
+
+
+        report_parts = [
+            str(trial.datetime_start),
+            "trial:", str(trial.number),
+            "value:", str(trial_value),
+            "best value:", str(best_value),
+        ]
+
+        if "report_name" in trial.user_attrs: # Check if report_name is set in user_attrs
+            key = trial.user_attrs["report_name"]
+            if key in ["refinement", "tuning"]:
+                value = trial.user_attrs["score"]
+            else:
+                value = trial.user_attrs.get(key, 'N/A') # Use .get to avoid KeyError
+            report_parts.extend([key + ":", str(value)])
+
+        if (len(self["directions"]) == 1 and trial_value == best_value) or \
+            (len(self["directions"]) > 1 and trial_value[0] == best_value): # Adjust for multi-objective best
+            report_parts.append("new best")
+
+        report_str = " ".join(report_parts)
+
+        if "log_file" in _kwargs and _kwargs["log_file"]:
+            with open(_kwargs["log_file"], "a") as f:
+                print(report_str, file=f)
+        else:
+            print(report_str)
+
+    return callback

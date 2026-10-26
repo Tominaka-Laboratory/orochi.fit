@@ -1,0 +1,22 @@
+
+
+
+def _get_score_distribution(self, study):
+    """
+    Calculates the mean, standard deviation, and minimum of trial values.
+    """
+    all_values = []
+    for trial in study.trials:
+        if trial.state == optuna.trial.TrialState.COMPLETE:
+            value = trial.values
+            if value is not None:
+                # For multi-objective, we'll take the first value for distribution stats
+                all_values.append(value[0] if len(value) > 0 else 0)
+
+    if len(all_values) == 0:
+        return None, None
+    else:
+        mu = np.mean(all_values)
+        sigma = np.std(all_values)
+        min_val = np.amin(all_values)
+        return min_val, np.abs(sigma)

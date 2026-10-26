@@ -1,0 +1,16 @@
+
+
+
+
+def sub_score_pruner_threshold(threshold):
+    def pruning(
+        study: optuna.study.Study, trial: optuna.trial.FrozenTrial
+    ) -> None:
+        this_sub_score = trial.user_attrs["sub_score"]
+        if threshold >= this_sub_score:
+            return False
+        else:
+            return True
+
+    return pruning
+
