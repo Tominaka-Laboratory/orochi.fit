@@ -20,7 +20,7 @@ orochi.fit
 |CI| |Codecov| |Black| |Tracking|
 
 .. |ChemRxiv| image:: https://img.shields.io/badge/ChemRxiv-10.26434%2Fchemrxiv.15010802%2Fv2-blue.svg
-        :target: https://doi.org/10.26434/chemrxiv.15010802/v2/v2
+        :target: https://doi.org/10.26434/chemrxiv.15010802/v2
 
 .. |Black| image:: https://img.shields.io/badge/code_style-black-black
         :target: https://github.com/psf/black
