@@ -19,8 +19,8 @@ orochi.fit
 
 |CI| |Codecov| |Black| |Tracking|
 
-.. |ChemRxiv| image:: https://img.shields.io/badge/ChemRxiv-10.26434%2Fchemrxiv.15010802-blue.svg
-        :target: https://doi.org/10.26434/chemrxiv.15010802
+.. |ChemRxiv| image:: https://img.shields.io/badge/ChemRxiv-10.26434%2Fchemrxiv.15010802%2Fv2-blue.svg
+        :target: https://doi.org/10.26434/chemrxiv.15010802/v2/v2
 
 .. |Black| image:: https://img.shields.io/badge/code_style-black-black
         :target: https://github.com/psf/black
@@ -172,8 +172,8 @@ If you use this package in academic research, please cite:
       author  = {Tominaka, Satoshi},
       journal = {ChemRxiv},
       year    = {2026},
-      doi     = {10.26434/chemrxiv.15010802},
-      url     = {https://doi.org/10.26434/chemrxiv.15010802}
+      doi     = {10.26434/chemrxiv.15010802/v2},
+      url     = {https://doi.org/10.26434/chemrxiv.15010802/v2}
     }
 
 Contact
