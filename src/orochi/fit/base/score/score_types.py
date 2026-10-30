@@ -178,7 +178,32 @@ def window_penalty(obsx, obsy, simx_attr, simy_attr, weight=1.0, **kwargs):
                         isolation_mask = ratio > r_attract
                         penalty_attract = np.sum(k_attract * (ratio[isolation_mask] - r_attract)**2)
                         
-                        total_penalty = penalty_repel + penalty_attract
+                        # --- 3. Density window penalty based on phase["density", "min" / "max"] ---
+                        penalty_density = 0.0
+                        k_density = kwargs.get("k_density", 50.0)
+                        try:
+                            d_min = phase["density", "min"]
+                        except Exception:
+                            d_min = phase.par.get("density", {}).get("min", 0.0)
+                        try:
+                            d_max = phase["density", "max"]
+                        except Exception:
+                            d_max = phase.par.get("density", {}).get("max", 0.0)
+
+                        if d_min is not None and d_max is not None:
+                            try:
+                                d_min = float(d_min)
+                                d_max = float(d_max)
+                                if d_max > d_min > 0.0:
+                                    rho = phase.get_density()
+                                    if rho < d_min:
+                                        penalty_density = k_density * ((d_min - rho) / d_min)**2
+                                    elif rho > d_max:
+                                        penalty_density = k_density * ((rho - d_max) / d_max)**2
+                            except Exception:
+                                pass
+
+                        total_penalty = penalty_repel + penalty_attract + penalty_density
                         P_factor *= (1.0 + total_penalty)
                         
         return P_factor
